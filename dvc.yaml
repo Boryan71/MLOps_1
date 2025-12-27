@@ -1,0 +1,24 @@
+stages:
+  validation:
+    cmd: python src/data/validation.py
+    deps:
+    - data/raw/UCI_Credit_Card.csv
+    - src/data/validation.py    
+  
+  prepare:
+    cmd: python src/data/make_dataset.py
+    deps:
+    - src/data/make_dataset.py
+    - data/raw/UCI_Credit_Card.csv
+    outs:
+    - data/processed/preprocessed_data.csv
+    
+  train:
+    cmd: python src/models/pipeline.py
+    deps:
+    - src/models/pipeline.py
+    - data/raw/UCI_Credit_Card.csv
+    outs:
+    - models/LinearRegr.pkl
+    metrics:
+    - models/LinearRegr_metrics.json
