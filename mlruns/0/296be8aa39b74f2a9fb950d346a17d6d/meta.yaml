@@ -1,0 +1,15 @@
+artifact_uri: file:///c:/Users/BMakunin/SF/mlops/MLOps_test/mlruns/0/296be8aa39b74f2a9fb950d346a17d6d/artifacts
+end_time: 1766868063339
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 296be8aa39b74f2a9fb950d346a17d6d
+run_name: pipeline_nn
+run_uuid: 296be8aa39b74f2a9fb950d346a17d6d
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1766867624547
+status: 3
+tags: []
+user_id: BMakunin

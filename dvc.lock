@@ -41,9 +41,9 @@ stages:
     outs:
     - path: models/LinearRegr.pkl
       hash: md5
-      md5: 9f173fdfe0e69ed1a2b9d12e0bcf6b90
+      md5: 35322bd37fcea76e44a6fef40d940b33
       size: 5219
     - path: models/LinearRegr_metrics.json
       hash: md5
-      md5: f487c11260399e0726471280b9d477d5
+      md5: a4063c3f13e3044b782ff7b990ceea5a
       size: 73

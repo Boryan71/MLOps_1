@@ -1,4 +1,4 @@
-# Репозиторий с итоговым проектом по дисциплине «Автоматизация процессов разработки и тестирования моделей машинного обучения»
+# Репозиторий с итоговым проектом по дисциплине «Автоматизация процессов доставки и развертывания моделей машинного обучения»
 
 В рамках задачи по автоматизации процесса разработки и обслуживания PD-модели реализован end-to-end автоматизированный пайплайн разработки, тестирования, сборки и мониторинга модели машинного обучения, предсказывающей вероятность дефолта клиента.
 
@@ -55,7 +55,9 @@ app-1  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 Пример запроса из CMD (Windows):
 
 ``` bash
-curl -X POST http://127.0.0.1:8000/predict/ -H "Content-Type: application/json" -d "{\"LIMIT_BAL\": 20000,\"SEX\": 1,\"EDUCATION\": 2,\"MARRIAGE\": 1,\"AGE\": 24,\"PAY_0\": 2,\"PAY_2\": 2,\"PAY_3\": -1,\"PAY_4\": -1,\"PAY_5\": -2,\"PAY_6\": -2,\"BILL_AMT1\": 3913,\"BILL_AMT2\": 3102,\"BILL_AMT3\": 689,\"BILL_AMT4\": 0,\"BILL_AMT5\": 0,\"BILL_AMT6\": 0,\"PAY_AMT1\": 0,\"PAY_AMT2\": 689,\"PAY_AMT3\": 0,\"PAY_AMT4\": 0,\"PAY_AMT5\": 0,\"PAY_AMT6\": 0}"
+~~curl -X POST http://127.0.0.1:8000/predict/ -H "Content-Type: application/json" -d "{\"LIMIT_BAL\": 20000,\"SEX\": 1,\"EDUCATION\": 2,\"MARRIAGE\": 1,\"AGE\": 24,\"PAY_0\": 2,\"PAY_2\": 2,\"PAY_3\": -1,\"PAY_4\": -1,\"PAY_5\": -2,\"PAY_6\": -2,\"BILL_AMT1\": 3913,\"BILL_AMT2\": 3102,\"BILL_AMT3\": 689,\"BILL_AMT4\": 0,\"BILL_AMT5\": 0,\"BILL_AMT6\": 0,\"PAY_AMT1\": 0,\"PAY_AMT2\": 689,\"PAY_AMT3\": 0,\"PAY_AMT4\": 0,\"PAY_AMT5\": 0,\"PAY_AMT6\": 0}"~~
+
+curl -X POST http://127.0.0.1:8000/predict/ -H "Content-Type: application/json" -d @./data/tests/examle.json
 ```
 
 
