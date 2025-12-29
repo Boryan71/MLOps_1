@@ -15,18 +15,43 @@
 **1. Клонируем репозиторий**  
 ``` bash
 git clone https://github.com/Boryan71/MLOps_1.git
-```
+```  
+Необходимые библиотеки укзананы в [requiremenets, обратите внимание, что некоторые из них закоментированы для облегчения поднятия контейнера. Для запуска всего проекта необходимо раскомментировать и установить все библиотеки](./requiremenets.txt).  
+
 **2. Вызываем запуск DVC-пайплайна для валидации данных и контроля выполнения всех шагов:**  
 ``` bash
 dvc repro -f
 ```
-3. **Docker-контейнер**:  
+**3. Docker-контейнер**:  
+
+Для работы в веб-интерфейсе Airflow во время первого запуска необходимо последовательно выполнить следующие шаги:  
 
 ``` bash
+docker-compose up -d postgres redis
+
+docker-compose run --rm airflow-webserver airflow db init 
+
+docker-compose up -d
+
+docker-compose exec airflow-webserver bash
+
+(airflow) airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com```  
+
+Теперь можно заходить в интерфейс [Airflow](http://localhost:8080/) для мониторинга DAG`ов.
+
+![airflow](./readme/airflow.png)
+
+Для повторного запуска контейнеров можно использовать команды:  
+
+``` bash
+# Тихий режим
+docker-compose up -d
+
+# Перестройка приложения при внесении изменений 
 docker-compose up --build
 ```  
 
-Поднимаем Docker-приложение с контейнерами Prometheus, Grafana + Loki и обученной нейросетевой моделью.  
+Поднимаем Docker-приложение с контейнерами Prometheus, Grafana, Loki, Airflow и обученной нейросетевой моделью.  
 ![docker](./readme/docker.png)
 ![predict](./readme/predict.png)
 ![grafana+prometheus](./readme/grafana+prometheus.png)
@@ -106,7 +131,7 @@ bandit -r src
 safety check --full-report
 ```
 
-### Многостадийная контейнеризация приложения в Docker и вызов нейросетевой модели по REST API, сбор метрик в Prometheus и дашборды в Grafana.
+### Многостадийная контейнеризация приложения в Docker и вызов нейросетевой модели по REST API, сбор метрик в Prometheus и дашборды в Grafana. 
 Готовый проект упаковывается в Docker-контейнер путем многостайдийной сборки.  
 В Docker-контейнер внедрен DVC для управления версиями данных.  
 Настройки контейнеризации указаны в [Dockerfile](./Dockerfile) и [docker-compose](./docker-compose.yml).  
@@ -137,3 +162,7 @@ curl -X POST http://127.0.0.1:8000/predict/ -H "Content-Type: application/json" 
 ![grafana_dash](./readme/grafana_dash.png)
 
 ![loki](./readme/loki.png)
+
+### Выполнение DAG`ов Airflow  
+Для запуска дагов в Airflow необходимо поднять контейнеры Docker и положить файл с дагом в папку [dags](./dags).  
+Для работы с веб-интерфейсом Airflow необходимо выполнить первоначальную настройку, описанную в Инструкции по запуску.  
