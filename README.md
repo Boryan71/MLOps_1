@@ -7,7 +7,7 @@
 В рамках проекта реализованы: 
 * Все требования, обозначенные к первой части работы
 * Создана нейросетевая модель классификации в формате ONNX, проведено [квантование](src/models/pipeline_nn.py), для уменьшения размера [модели NN_quant.onnx](models)
-* **!В работе!** Реализация [Terraform] для развертывания в Yandex.Cloud
+* **!В работе!** Реализация [Terraform](./infrastruture/modules/network/main.tf) для развертывания в Yandex.Cloud
 
 ## Инструкция по запуску
 1. Вызываем запуск DVC-пайплайна для валидации данных и контроля выполнения всех шагов:
@@ -36,8 +36,8 @@ python src/features/cd_monitoring.py
 terraform -chdir=./infrastructure/modules/network plan
 ```
 
-В результате должно выдавать рабочий план развертывания terraform:
-[terraform_plan](./readme/terraform_plan.png)
+В результате должно выдавать рабочий план развертывания terraform:  
+![terraform_plan](./readme/terraform_plan.png)
 
 ## Обзор реализованных функций
 ### Валидация данных при помощи GreatExpectations (Первая часть проекта)
