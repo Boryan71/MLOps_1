@@ -35,7 +35,6 @@ services:
     container_name: promtail
     volumes:
       - ./promtail-local-config.yaml:/etc/promtail/local-config.yaml
-      # Монтируем директорию с логами
       - logs:/logs
     depends_on:
       - loki
@@ -50,10 +49,55 @@ services:
     networks:
       - monitoring
 
+  postgres:
+    image: postgres:17.7
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:8.0.0
+    ports:
+      - "6379:6379"
+
+  airflow-webserver:
+    image: apache/airflow:2.9.1
+    restart: always
+    command: ["airflow", "webserver"]
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./dags:/opt/airflow/dags
+
+  airflow-scheduler:
+    image: apache/airflow:2.9.1
+    restart: always
+    command: ["airflow", "scheduler"]
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./dags:/opt/airflow/dags
+      
+      
 volumes:
-  # Том для логов
   logs: {}
-  # Том для данных Loki
   lokidata: {}
 
 networks:

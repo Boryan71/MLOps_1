@@ -6,6 +6,8 @@ import onnxruntime as rt
 from prometheus_client import Counter, Histogram, make_asgi_app
 from starlette.responses import PlainTextResponse
 import logging
+import os
+from data_drift_detector import DataDriftDetector
 
 
 # Настройка логгирования
@@ -23,26 +25,15 @@ REQUEST_COUNTER = Counter('total_requests', 'Total number of incoming requests')
 # Метрика для измерения времени обработки запросов
 REQUEST_LATENCY = Histogram('request_latency_seconds', 'Request latency distribution')
 
-# Функция для предсказания
-@REQUEST_LATENCY.time()
-def predict_proba(dataframe):
-    REQUEST_COUNTER.inc()
-    input_data = dataframe.to_numpy().astype(np.float32)
-    result = session.run(None, {"dense_input": input_data})
-    logger.info("Метрика записана в Prometheus")
-    return result[0].reshape(-1)
-
 # Загружаем ONNX-модель
 MODEL_PATH = "models/NN_quant.onnx"
 session = rt.InferenceSession(MODEL_PATH)
 
+app = FastAPI()
 
-# Функция для предсказания
-def predict_proba(dataframe):
-    input_data = dataframe.to_numpy().astype(np.float32)
-    result = session.run(None, {"dense_input": input_data})
-    return result[0].reshape(-1)
-
+# Интеграция Prometheus
+prometheus_app = make_asgi_app()
+app.mount("/metrics", prometheus_app)
 
 # Определяем схему входных данных (один клиент)
 class SingleClient(BaseModel):
@@ -74,15 +65,21 @@ class SingleClient(BaseModel):
 # Определяем схему входных данных (список клиентов)
 class MultipleClients(BaseModel):
     clients: list[SingleClient]
+    
+# Функция для предсказания
+@REQUEST_LATENCY.time()
+def predict_proba(dataframe):
+    REQUEST_COUNTER.inc()
+    input_data = dataframe.to_numpy().astype(np.float32)
+    result = session.run(None, {"dense_input": input_data})
+    logger.info("Метрика записана в Prometheus")
+    return result[0].reshape(-1)
 
-
-app = FastAPI()
-
-
-# Интеграция прометеус-экспорта
-prometheus_app = make_asgi_app()
-app.mount("/metrics", prometheus_app)
-
+# Функция для предсказания
+def predict_proba(dataframe):
+    input_data = dataframe.to_numpy().astype(np.float32)
+    result = session.run(None, {"dense_input": input_data})
+    return result[0].reshape(-1)
 
 @app.post("/predict/")
 def predict_multiple_clients(input_data: MultipleClients):
@@ -105,3 +102,31 @@ def predict_multiple_clients(input_data: MultipleClients):
     except Exception as e:
         logger.error(f"An error occurred during prediction: {str(e)}")
         return {"error": str(e)}
+
+# Функция для переобучения модели
+def retrain_model():
+    logger.info("Начало переобучения модели...")
+    os.system("python /app/src/models/pipeline_nn.py")
+    logger.info("Модель переобучена успешно!")
+
+# Функция для проверки дрифта данных
+def check_data_drift():
+    reference_data = pd.read_csv(os.path.abspath("data/raw/UCI_Credit_Card.csv"))
+    current_data = pd.read_csv(os.path.abspath("data/raw/UCI_Credit_Card_new.csv"))
+
+    detector = DataDriftDetector(df_prior = reference_data, df_post = current_data)
+    data_drift = detector.calculate_drift()["numerical"]["AGE"]["ks_2sample_test_p_value"]
+    return data_drift
+
+# End-point для приема GET-запроса от Airflow DAG
+@app.get("/check-data-drift/")
+def check_data_drift_endpoint():
+    data_drift_value = check_data_drift()
+    logger.info(f"Доля дрифта данных: {data_drift_value}")
+    return {"data_drift": data_drift_value}
+
+# End-point для переобучения модели
+@app.get("/retrain-model/")
+def retrain_model_endpoint():
+    retrain_model()
+    return {"status": "OK"}

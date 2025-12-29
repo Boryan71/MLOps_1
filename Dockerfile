@@ -1,46 +1,43 @@
-# 1 этап 
-# Устанавливаем зависимости и подготовка окружения
+# 1 этап
+# Устанавливаем зависимости и подготовку окружения
 FROM python:3.11-rc-slim-buster AS base
 
 WORKDIR /app
 
 COPY requirements.txt .
 
-RUN pip install --user --trusted-host pypi.org --trusted-host files.pythonhosted.org --no-cache-dir -r requirements.txt
+# Установим зависимости глобально
+RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --no-cache-dir -r requirements.txt
 
-#########################################
+#######################################
 # 2 этап
 # Получение обработанных данных и модели через DVC
 FROM base AS dvc_stage
 
 WORKDIR /app
 
-COPY --from=base /root/.local /root/.local
-ENV PATH=/root/.local/bin:$PATH
-
-# Копируем файлы DVC
+# Копируем исходники
 COPY . .
 
-# Запускаем DVC pull для загрузки обработанных данных и проверки
+# Загружаем данные и проверяем этапы репроцессинга
 RUN dvc pull
 RUN dvc repro
 
-########################################
-# 3 этап 
-# Запускаем приложение FastApi
-FROM python:3.11-rc-slim-buster AS final
+######################################
+# 3 этап
+# Финальный контейнер с приложением FastAPI
+FROM dvc_stage AS final
 
 WORKDIR /app
 
 # Создаем каталог для логов
 RUN mkdir -p /logs
 
-# Копируем приложение и предварительно подготовленные данные/модели из предыдущего этапа
-COPY --from=base /root/.local /root/.local
+# Перемещаем нужные компоненты из предыдущих слоев
 COPY --from=dvc_stage /app/src ./src
 COPY --from=dvc_stage /app/models/NN_quant.onnx ./models/NN_quant.onnx
+COPY data ./data
 
-ENV PATH=/root/.local/bin:$PATH
 # Открываем порт 8000 для внешнего доступа
 EXPOSE 8000
 
