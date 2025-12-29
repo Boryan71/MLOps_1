@@ -32,6 +32,9 @@ FROM python:3.11-rc-slim-buster AS final
 
 WORKDIR /app
 
+# Создаем каталог для логов
+RUN mkdir -p /logs
+
 # Копируем приложение и предварительно подготовленные данные/модели из предыдущего этапа
 COPY --from=base /root/.local /root/.local
 COPY --from=dvc_stage /app/src ./src

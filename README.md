@@ -26,10 +26,11 @@ dvc repro -f
 docker-compose up --build
 ```  
 
-Поднимаем Docker-приложение с контейнерами Prometheus, Grafana и обученной нейросетевой моделью.  
+Поднимаем Docker-приложение с контейнерами Prometheus, Grafana + Loki и обученной нейросетевой моделью.  
 ![docker](./readme/docker.png)
 ![predict](./readme/predict.png)
 ![grafana+prometheus](./readme/grafana+prometheus.png)
+![loki](./readme/loki.png)
 
 [Веб-интерфейс Prometheus, открывать после поднятия контейнера](http://localhost:9090/tsdb-status)  
 [Веб-интерфейс Grafana, открывать после поднятия контейнера](http://localhost:3000/connections/datasources/edit/)  
@@ -117,7 +118,7 @@ curl -X POST http://127.0.0.1:8000/predict/ -H "Content-Type: application/json" 
 
 ![prometheus](./readme/prometheus.png)  
 
-В Grafana в связке с Prometheus можно настроить дашборды с необходимыми метриками.
+В Grafana в связке с Prometheus и Loki можно настроить дашборды с необходимыми метриками.
 
 Доступ к Prometheus осуществляется по адресу `http://localhost:9090/tsdb-status`.  
 Подключение Grafana к Prometheus осуществляется выбором Data Source `http://prometheus:9090`.  
@@ -125,3 +126,5 @@ curl -X POST http://127.0.0.1:8000/predict/ -H "Content-Type: application/json" 
 ![grafana_connect](./readme/grafana_connect.png)
 
 ![grafana_dash](./readme/grafana_dash.png)
+
+![loki](./readme/loki.png
