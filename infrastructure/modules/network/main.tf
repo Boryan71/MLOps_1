@@ -62,6 +62,46 @@ resource "yandex_compute_instance" "vm-1" {
   }
 }
 
+## Кластер k8s
+#resource "yandex_managed_kubernetes_cluster" "cluster" {
+#  name                = "k8s_cluster"
+#  description         = "Кластер Kubernetess"
+#  network_id          = yandex_vpc_network.network-main.id
+#  master_version      = "1.33" # Рекомендуется Яндексом
+#  maintenance_policy {
+#    auto_upgrade = true
+#  }
+#}
+#
+## Группа нод кластера
+#resource "yandex_managed_kubernetes_node_group" "node_group" {
+#  name                      = "k8s_node_group"
+#  cluster_id                = yandex_managed_kubernetes_cluster.cluster.id
+#  scale_policy {
+#    max_size = length(["ru-central1-a", "ru-central1-b"]) * 3 #зоны доступности умноженные на количество нод в каждой зоне
+#    min_size = length(["ru-central1-a", "ru-central1-b"]) * 3 #зоны доступности умноженные на количество нод в каждой зоне
+#  }
+#  allocation_policy {
+#    zones = ["ru-central1-a", "ru-central1-b"]
+#  }
+#  node_template {
+#    platform_id = "standard-v2"
+#    resources_spec {
+#      memory = 8   # Кластер типа "Preview"
+#      cores  = 2   # Кластер типа "Preview"
+#    }
+#    local_storage {
+#      disk_type = "network-nvme"
+#      disk_size = 10
+#    }
+#    image {
+#      family = "k8s-nodes-image-family"
+#    }
+#    service_account_id = "ajehpp26k8qvn8iac0up" #boryan71-service-acc
+#  }
+#  depends_on       = [yandex_managed_kubernetes_cluster.cluster]
+#}
+
 output "internal_ip_address_vm_1" {
   value = yandex_compute_instance.vm-1.network_interface.0.ip_address
 }
