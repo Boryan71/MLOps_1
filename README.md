@@ -42,6 +42,15 @@ docker-compose up --build
 python src/features/cd_monitoring.py 
 ```
 
+Также реализована оценка дрифта данных с помощью [Evidently AI](./tests/monitoring/data_drift.py).  
+Вызов:  
+```bash
+python ./tests/monitoring/data_drift.py
+```
+
+В результате выводится инфорграфика о дрифте данных в формате html:  
+![evidently_report](./readme/evidently_report.png)  
+
 5. **Развертывание Terraform-конфигурации в Yandex.Cloud**  
 (необходимо установить и настроить Terraform, в т.ч. добавить путь в Path + настроить провайдер Yandex.Cloud в %APPDATA%/terraform.rc)  
 Вызов:  
@@ -127,4 +136,4 @@ curl -X POST http://127.0.0.1:8000/predict/ -H "Content-Type: application/json" 
 
 ![grafana_dash](./readme/grafana_dash.png)
 
-![loki](./readme/loki.png
+![loki](./readme/loki.png)

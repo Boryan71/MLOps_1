@@ -13,6 +13,7 @@ uvicorn==0.38.0
 dvc==3.62.0
 tensorflow==2.12.0
 #notebook==7.5.1
+evidently==0.7.18
 tf2onnx==1.16.1
 onnxruntime==1.20.*
 onnx==1.16.1

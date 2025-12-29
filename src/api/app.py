@@ -5,6 +5,16 @@ import numpy as np
 import onnxruntime as rt
 from prometheus_client import Counter, Histogram, make_asgi_app
 from starlette.responses import PlainTextResponse
+import logging
+
+
+# Настройка логгирования
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 # Метрика для подсчета количества запросов
@@ -19,6 +29,7 @@ def predict_proba(dataframe):
     REQUEST_COUNTER.inc()
     input_data = dataframe.to_numpy().astype(np.float32)
     result = session.run(None, {"dense_input": input_data})
+    logger.info("Метрика записана в Prometheus")
     return result[0].reshape(-1)
 
 # Загружаем ONNX-модель
@@ -82,6 +93,9 @@ def predict_multiple_clients(input_data: MultipleClients):
         # Прогоняем модель и получаем прогнозы
         predictions = predict_proba(df)
 
+        # Логируем успешное предсказание
+        logger.info("Прогноз выполнен успешно")
+
         # Возвращаем список вероятностей дефолта для каждого клиента
         return [
             {"client_id": idx, "default_probability": f"{prob * 100}%"}
@@ -89,4 +103,5 @@ def predict_multiple_clients(input_data: MultipleClients):
         ]
 
     except Exception as e:
+        logger.error(f"An error occurred during prediction: {str(e)}")
         return {"error": str(e)}
