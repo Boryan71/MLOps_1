@@ -35,7 +35,8 @@ docker-compose up -d
 
 docker-compose exec airflow-webserver bash
 
-(airflow) airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com```  
+(airflow) airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com
+```  
 
 Теперь можно заходить в интерфейс [Airflow](http://localhost:8080/) для мониторинга DAG`ов.
 
