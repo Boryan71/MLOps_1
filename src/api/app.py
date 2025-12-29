@@ -1,12 +1,18 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import joblib
 import pandas as pd
+import numpy as np
+import onnxruntime as rt
 
-# Подгружаем модель
-MODEL_PATH = "models/LinearRegr.pkl"
-model = joblib.load(MODEL_PATH)
+# Загружаем ONNX-модель
+MODEL_PATH = "models/NN_quant.onnx"
+session = rt.InferenceSession(MODEL_PATH)
 
+# Функция для предсказания
+def predict_proba(dataframe):
+    input_data = dataframe.to_numpy().astype(np.float32)
+    result = session.run(None, {"dense_input": input_data})
+    return result[0].reshape(-1)
 
 # Определяем схему входных данных (один клиент)
 class SingleClient(BaseModel):
@@ -34,29 +40,27 @@ class SingleClient(BaseModel):
     PAY_AMT5: float
     PAY_AMT6: float
 
-
 # Определяем схему входных данных (список клиентов)
 class MultipleClients(BaseModel):
     clients: list[SingleClient]
 
-
 app = FastAPI()
 
-
 @app.post("/predict/")
-async def predict_multiple_clients(input_data: MultipleClients):
+def predict_multiple_clients(input_data: MultipleClients):
     try:
         # Формируем датафрейм из списка клиентов
         df = pd.DataFrame([client.dict() for client in input_data.clients])
-
-        # Прогоняем модель и собираем прогнозы
-        predictions = model.predict_proba(df)[:, 1]
-
+        
+        # Прогоняем модель и получаем прогнозы
+        predictions = predict_proba(df)
+        
         # Возвращаем список вероятностей дефолта для каждого клиента
         return [
-            {"client_id": idx, "default_probability": f"{prob * 100:.2f}%"}
+            {"client_id": idx, "default_probability": f"{prob * 100}%"}
             for idx, prob in enumerate(predictions)
         ]
+
 
     except Exception as e:
         return {"error": str(e)}

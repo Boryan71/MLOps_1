@@ -14,11 +14,9 @@ stages:
     - data/processed/preprocessed_data.csv
     
   train:
-    cmd: python src/models/pipeline.py
+    cmd: python src/models/pipeline_nn.py
     deps:
-    - src/models/pipeline.py
+    - src/models/pipeline_nn.py
     - data/raw/UCI_Credit_Card.csv
     outs:
-    - models/LinearRegr.pkl
-    metrics:
-    - models/LinearRegr_metrics.json
+    - models/NN_quant.onnx

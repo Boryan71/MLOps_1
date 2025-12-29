@@ -28,22 +28,18 @@ stages:
       md5: c97d3835fb390d4b7f1fef4e2f510dd5
       size: 10258710
   train:
-    cmd: python src/models/pipeline.py
+    cmd: python src/models/pipeline_nn.py
     deps:
     - path: data/raw/UCI_Credit_Card.csv
       hash: md5
       md5: 7d0a38e67151eb0d202ce6c096e5ca7a
       size: 2892996
-    - path: src/models/pipeline.py
+    - path: src/models/pipeline_nn.py
       hash: md5
-      md5: 3b054e59766744a5ae488e1d32d8bc6d
-      size: 7000
+      md5: 50dbba1b9a9245610899ed3f6d5fea01
+      size: 5540
     outs:
-    - path: models/LinearRegr.pkl
+    - path: models/NN_quant.onnx
       hash: md5
-      md5: 35322bd37fcea76e44a6fef40d940b33
-      size: 5219
-    - path: models/LinearRegr_metrics.json
-      hash: md5
-      md5: a4063c3f13e3044b782ff7b990ceea5a
-      size: 73
+      md5: d98788d92893b7084c8bcee4a6147bb1
+      size: 6381
