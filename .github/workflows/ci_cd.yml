@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Multi-Stage CI/CD Pipeline
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  lint-and-test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -20,21 +20,38 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install pytest flake8 black great_expectations
-          cat << EOF > .flake8 
-          [flake8] 
-          exclude = 
-            **/*.ipynb_checkpoints/** 
-          EOF
+          pip install pytest flake8 black great_expectations safety bandit
+
+      - name: Check security vulnerabilities
+        run: |
+          safety check --full-report
+          bandit -r src
+
+      - name: Cache built artifacts
+        uses: actions/cache@v2
+        with:
+          path: dist
+          key: ${{ hashFiles('**/requirements.txt') }}
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Restore cached artifacts
+        uses: actions/cache@v2
+        with:
+          path: dist
+          key: ${{ hashFiles('**/requirements.txt') }}
+
+      - name: Run unit tests
+        run: |
+          pytest -v --junitxml=test-report.xml
 
       - name: Run linters
         run: |
           flake8 --max-line-length=125 src
           black --check src
-
-      - name: Run tests
-        run: |
-          pytest -v --junitxml=test-report.xml
 
       - name: Validate data
         run: |
@@ -45,3 +62,35 @@ jobs:
         with:
           name: test-reports
           path: test-report.xml
+
+  deploy-staging:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip ci]')
+    steps:
+      - uses: actions/checkout@v2
+      - name: Deploy to Staging Environment
+        run: |
+          echo "Deploying to staging..."
+          # Черновик для установки на стейдж
+
+  deploy-production:
+    needs: [test, deploy-staging]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'release:')
+    steps:
+      - uses: actions/checkout@v2
+      - name: Deploy to Production Environment
+        run: |
+          echo "Deploying to production..."
+          # Черновик для установки на прод
+
+  monitor:
+    needs: deploy-production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Monitoring and Alerting
+        run: |
+          echo "Starting monitoring process..."
+          # Черновик для запуска мониторинга
