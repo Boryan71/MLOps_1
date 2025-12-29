@@ -3,6 +3,23 @@ from pydantic import BaseModel
 import pandas as pd
 import numpy as np
 import onnxruntime as rt
+from prometheus_client import Counter, Histogram, make_asgi_app
+from starlette.responses import PlainTextResponse
+
+
+# Метрика для подсчета количества запросов
+REQUEST_COUNTER = Counter('total_requests', 'Total number of incoming requests')
+
+# Метрика для измерения времени обработки запросов
+REQUEST_LATENCY = Histogram('request_latency_seconds', 'Request latency distribution')
+
+# Функция для предсказания
+@REQUEST_LATENCY.time()
+def predict_proba(dataframe):
+    REQUEST_COUNTER.inc()
+    input_data = dataframe.to_numpy().astype(np.float32)
+    result = session.run(None, {"dense_input": input_data})
+    return result[0].reshape(-1)
 
 # Загружаем ONNX-модель
 MODEL_PATH = "models/NN_quant.onnx"
@@ -49,6 +66,11 @@ class MultipleClients(BaseModel):
 
 
 app = FastAPI()
+
+
+# Интеграция прометеус-экспорта
+prometheus_app = make_asgi_app()
+app.mount("/metrics", prometheus_app)
 
 
 @app.post("/predict/")

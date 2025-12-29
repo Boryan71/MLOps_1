@@ -19,14 +19,16 @@ git clone https://github.com/Boryan71/MLOps_1.git
 ``` bash
 dvc repro -f
 ```
-3. **Поднимаем Docker-контейнер с обученной моделью**:  
+3. **Docker-контейнер**:  
+
 ``` bash
 docker-compose up --build
-```
+```  
 
-В результате должны иметь работающий Docker-контейнер с обученной моделью предсказания вероятности дефолта клиента:  
+Поднимаем Docker-приложение с контейнерами Prometheus, Grafana и обученной нейросетевой моделью.  
 ![docker](./readme/docker.png)
 ![predict](./readme/predict.png)
+![grafana+prometheus](./readme/grafana+prometheus.png)
 
 4. **Мониторинг дрифта**  
 Отдельным [скриптом](./tests/monitoring/cd_monitoring.py) реализован мониторинг дрифта данных по метрике PSI, имитирующий поступление новых данных, переобучающий и переподнимающий модель при значительном отклонении.  
@@ -73,18 +75,24 @@ dvc repro
 
 ![dvc repro](./readme/dvc_repro.png)
 
-### GitHub Actions (Первая часть проекта)
+### GitHub Actions
 При пуше изменений в репозиторий запускается CI-пайплайн проверки с помощью [GitHub Actions](./.github/workflows/ci_cd.yml).
-Внутри пайплайна реализованы проверки линтинга с помощью flake8 и форматирования основных python-скриптов с помощью black, а также валидация тестовых данных с помощью набора правил GreatExpectations
+Внутри пайплайна реализованы проверки линтинга с помощью flake8 и форматирования основных python-скриптов с помощью black, а также валидация тестовых данных с помощью набора правил GreatExpectations.
+В дополненной версии реализованы проверки _safety_ и _bandit_.
+Для прохождения проверки _safety_ необходима масшатбная перестройка проекта, так как ей не нравятся "устаревшие" пакеты.
 
 Для ручной проверки необходимо вызвать из корня проекта следующие команды:
 
 ``` bash
 flake8 --max-line-length=125 src
 black --check src
+bandit -r src
+
+# Посыпет ошибками
+safety check --full-report
 ```
 
-### Многостадийная контейнеризация приложения в Docker и вызов нейросетевой модели по REST API.
+### Многостадийная контейнеризация приложения в Docker и вызов нейросетевой модели по REST API, сбор метрик в Prometheus и дашборды в Grafana.
 Готовый проект упаковывается в Docker-контейнер путем многостайдийной сборки.  
 В Docker-контейнер внедрен DVC для управления версиями данных.  
 Настройки контейнеризации указаны в [Dockerfile](./Dockerfile) и [docker-compose](./docker-compose.yml).  
@@ -100,3 +108,10 @@ app-1  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 ``` bash
 curl -X POST http://127.0.0.1:8000/predict/ -H "Content-Type: application/json" -d @./data/tests/examle.json
 ```
+
+При помощи Prometheus обеспечивается сбор статистики количества запросов к приложению и задержки ответов.
+В Grafana в связке с Prometheus можно настроить дашборды с необходимыми метриками.
+
+Доступ к Prometheus осуществляется по адресу `http://localhost:9090/tsdb-status`.  
+Подключение Grafana к Prometheus осуществляется выбором Data Source `http://prometheus:9090`.  
+![grafana_connect](./readme/grafana_connect.png)

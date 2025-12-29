@@ -1,6 +1,32 @@
 version: '3'
+
 services:
   app:
-    build: .          
+    build: .
     ports:
       - "8000:8000"
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus:v2.36.1
+    restart: always
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: always
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
